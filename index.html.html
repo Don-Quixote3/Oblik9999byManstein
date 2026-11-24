@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1013">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Облік">
+<title>Облік рахунку</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0e1013;--card:#181b20;--ink:#eef0f3;--mut:#8b929c;--line:#2a2f37;--in:#22c55e;--out:#ef4444;--inbtn:#16a34a;--outbtn:#dc2626}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Libre Franklin",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column}
+h1{order:-2;font-size:20px;font-weight:800;margin:4px 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#sync{font-size:13px;font-weight:400;color:var(--mut)}
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--line)}
+.bal small{color:var(--mut);font-size:14px}
+.big{font-size:clamp(34px,11vw,48px);font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;margin:2px 0 0}
+.sums{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.sums div{font-size:13px;color:var(--mut)}
+.sums b{display:block;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.inc{color:var(--in)!important}.exp{color:var(--out)!important}
+label{display:block;font-size:14px;color:var(--mut);margin:0 0 4px}
+input{width:100%;font:inherit;font-size:17px;color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;min-height:48px}
+input:focus{outline:none;border-color:var(--ink)}
+#start{font-size:22px;font-weight:700;min-height:52px}
+.f{margin-bottom:12px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px}
+#amt{font-size:22px;font-weight:600;text-align:right}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;min-height:52px;padding:0 14px;cursor:pointer;color:#fff}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.bin{background:var(--inbtn)}.bout{background:var(--outbtn)}
+.bin:active{background:#15803d}.bout:active{background:#b91c1c}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);min-height:46px}
+.main{background:var(--ink);color:var(--bg);width:100%}
+.edit-bar{display:none;gap:10px;margin-top:10px}.editing .edit-bar{display:grid;grid-template-columns:1fr 1fr}
+.editing #formTitle::after{content:" — редагування";color:var(--out)}
+h2{font-size:16px;font-weight:800;margin:0 0 8px}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:11px 2px;border-top:1px solid var(--line);cursor:pointer}
+li:first-child{border-top:0}
+li .n{font-weight:600;overflow-wrap:anywhere}
+li .d{font-size:13px;color:var(--mut)}
+li .a{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;grid-row:span 2;align-self:center}
+li.sel{background:#232830;border-radius:8px}
+.empty{color:var(--mut);padding:8px 0;cursor:default}
+#formCard{order:-1}
+.tabs{order:-2;display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:14px}
+.tabs button{min-height:42px;background:transparent;color:var(--mut);border-radius:9px}
+.tabs button.on{background:var(--ink);color:var(--bg)}
+#preview{display:none}
+body.v-table .wrap>.card{display:none}
+body.v-table #preview{display:block}
+.xl{overflow-x:auto;background:#fff;border-radius:8px;margin-bottom:12px}
+#sheet{border-collapse:collapse;color:#111;font:13px/1.3 Calibri,Arial,sans-serif;min-width:540px;width:100%;table-layout:fixed}
+#sheet th{background:#efefef;color:#555;font-weight:400;border:1px solid #d4d4d4;padding:3px 4px;text-align:center}
+#sheet td{border:1px solid #e6e6e6;padding:4px 6px;height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheet td.bx{border:1px solid #222}
+#sheet .b{font-weight:700}
+#sheet .num{text-align:right;font-variant-numeric:tabular-nums}
+.tools{display:grid;gap:10px}
+.note{font-size:13px;color:var(--mut);margin:0}
+.confirm{display:none;gap:10px}.confirm.on{display:grid;grid-template-columns:1fr 1fr}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(160%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;display:flex;gap:12px;align-items:center;max-width:92vw;transition:transform .2s;z-index:9}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast button{min-height:36px;background:transparent;color:var(--bg);border:1px solid var(--bg);border-radius:8px;padding:0 10px}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Облік рахунку <span id="sync">дані на цьому пристрої</span></h1>
+  <div class="tabs" id="tabs"><button data-v="entries" class="on">Записи</button><button data-v="table">Таблиця Excel</button></div>
+
+  <section class="card" id="preview">
+    <h2>Перегляд таблиці</h2>
+    <div class="xl"><table id="sheet"></table></div>
+    <button class="main" id="xlsx2">Завантажити Excel (.xlsx)</button>
+  </section>
+
+  <section class="card">
+    <div class="sums">
+      <div>Доходи<b class="inc" id="sIn">0,00</b></div>
+      <div>Витрати<b class="exp" id="sOut">0,00</b></div>
+    </div>
+  </section>
+
+  <section class="card" id="formCard">
+    <h2 id="formTitle">Новий запис</h2>
+    <div class="f"><label for="name">Найменування</label><input id="name" list="names" autocomplete="off"><datalist id="names"></datalist></div>
+    <div class="two f">
+      <div><label for="date">Дата</label><input id="date" type="date"></div>
+      <div><label for="amt">Сума</label><input id="amt" inputmode="decimal" placeholder="0,00"></div>
+    </div>
+    <div class="btns">
+      <button class="bin" id="addIn">+ Доходи</button>
+      <button class="bout" id="addOut">− Витрати</button>
+    </div>
+    <div class="edit-bar">
+      <button class="ghost" id="cancel">Скасувати</button>
+      <button class="ghost exp" id="del">Видалити</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Записи <span id="cnt" style="color:var(--mut);font-weight:400"></span></h2>
+    <ul id="list"></ul>
+  </section>
+
+  <section class="card bal">
+    <label for="start">Було на рахунку</label>
+    <input id="start" inputmode="decimal" placeholder="0,00">
+    <div style="border-top:1px solid var(--line);margin:16px 0 0;padding-top:12px">
+      <small>Стало на рахунку</small>
+      <div class="big" id="end">0,00</div>
+    </div>
+  </section>
+
+  <section class="card tools">
+    <button class="main" id="xlsx">Завантажити Excel (.xlsx)</button>
+    <button class="ghost" id="restore">Відновити з файлу Excel</button>
+    <input type="file" id="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    <button class="ghost" id="newPer">Почати новий період</button>
+    <p class="note" id="confNote" hidden>Записи буде очищено, а «Стало» стане новим «Було». Спочатку завантаж Excel.</p>
+    <div class="confirm" id="conf">
+      <button class="ghost" id="confNo">Ні</button>
+      <button class="bout" id="confYes">Так, очистити</button>
+    </div>
+  </section>
+</div>
+<div id="toast" role="status"><span id="tMsg"></span><button id="tUndo" hidden>Повернути</button></div>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const KEY='oblik-rahunku-v1';
+let st={start:0,rows:[],ts:0},editId=null,undo=null;
+const fmt=v=>(Math.round(v*100)/100).toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2});
+const parse=s=>{const v=parseFloat(String(s).replace(/[\s ]/g,'').replace(',','.'));return isFinite(v)?Math.round(v*100)/100:NaN};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>iso(new Date());
+const dUA=d=>d.split('-').reverse().join('.');
+const escH=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const sortAsc=r=>r.slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.c-b.c);
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function buildXlsx(st){
+  const enc=new TextEncoder();
+  const esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const rows=st.rows.slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.c-b.c);
+  const R=Math.max(20,rows.length),first=6,last=5+R,sumR=6+R;
+  const serial=d=>{const[y,m,dd]=d.split('-').map(Number);return (Date.UTC(y,m-1,dd)-Date.UTC(1899,11,30))/864e5};
+  const str=(r,s,t)=>`<c r="${r}" s="${s}" t="inlineStr"><is><t>${esc(t)}</t></is></c>`;
+  const num=(r,s,v)=>v===''||v==null?`<c r="${r}" s="${s}"/>`:`<c r="${r}" s="${s}"><v>${v}</v></c>`;
+  let x='';
+  x+=`<row r="2" ht="22" customHeight="1">${str('B2',1,'Було на рахунку')}<c r="C2" s="1"/>${num('D2',5,st.start||0)}</row>`;
+  x+=`<row r="5" ht="20" customHeight="1">${str('A5',1,'Дата')}${str('B5',1,'Найменування')}${str('C5',1,'Доходи')}${str('D5',1,'Витрати')}</row>`;
+  let inn=0,out=0;
+  for(let i=0;i<R;i++){
+    const r=first+i,e=rows[i];
+    if(e){e.t==='in'?inn+=e.a:out+=e.a}
+    x+=`<row r="${r}">`+(e?num('A'+r,3,serial(e.d)):num('A'+r,3,''))+(e?str('B'+r,2,e.n):`<c r="B${r}" s="2"/>`)
+      +num('C'+r,4,e&&e.t==='in'?e.a:'')+num('D'+r,4,e&&e.t==='out'?e.a:'')+`</row>`;
+  }
+  const end=Math.round(((st.start||0)+inn-out)*100)/100;
+  x+=`<row r="${sumR}" ht="22" customHeight="1">${str('B'+sumR,1,'Стало на рахунку')}<c r="C${sumR}" s="1"/><c r="D${sumR}" s="5"><f>D2+SUM(C${first}:C${last})-SUM(D${first}:D${last})</f><v>${end}</v></c></row>`;
+  const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main',RNS='http://schemas.openxmlformats.org/officeDocument/2006/relationships',PK='http://schemas.openxmlformats.org/package/2006/relationships';
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const sheet=H+`<worksheet xmlns="${NS}"><cols><col min="1" max="1" width="13" customWidth="1"/><col min="2" max="2" width="44" customWidth="1"/><col min="3" max="4" width="18" customWidth="1"/></cols><sheetData>${x}</sheetData><mergeCells count="2"><mergeCell ref="B2:C2"/><mergeCell ref="B${sumR}:C${sumR}"/></mergeCells><pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>`;
+  const bd='<left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="thin"><color auto="1"/></bottom><diagonal/>';
+  const styles=H+`<styleSheet xmlns="${NS}"><numFmts count="1"><numFmt numFmtId="164" formatCode="dd.mm.yyyy"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="12"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border>${bd}</border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/><xf numFmtId="4" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/><xf numFmtId="4" fontId="1" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const files=[
+    ['[Content_Types].xml',H+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+    ['_rels/.rels',H+`<Relationships xmlns="${PK}"><Relationship Id="rId1" Type="${RNS}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ['xl/workbook.xml',H+`<workbook xmlns="${NS}" xmlns:r="${RNS}"><sheets><sheet name="Облік" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`],
+    ['xl/_rels/workbook.xml.rels',H+`<Relationships xmlns="${PK}"><Relationship Id="rId1" Type="${RNS}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${RNS}/styles" Target="styles.xml"/></Relationships>`],
+    ['xl/styles.xml',styles],
+    ['xl/worksheets/sheet1.xml',sheet]
+  ];
+  const T=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T[n]=c>>>0}
+  const crc=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=T[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
+  const now=new Date(),dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF,dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  const parts=[],cent=[];let off=0;
+  for(const[name,txt]of files){
+    const nb=enc.encode(name),data=enc.encode(txt),c=crc(data);
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);
+    h.setUint32(14,c,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nb.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),nb,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,dt,true);ch.setUint16(14,dd,true);
+    ch.setUint32(16,c,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,nb.length,true);ch.setUint32(42,off,true);
+    cent.push(new Uint8Array(ch.buffer),nb);
+    off+=30+nb.length+data.length;
+  }
+  const cs=cent.reduce((s,p)=>s+p.length,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  const all=[...parts,...cent,new Uint8Array(e.buffer)],tot=all.reduce((s,p)=>s+p.length,0),out8=new Uint8Array(tot);
+  let p=0;for(const a of all){out8.set(a,p);p+=a.length}
+  return out8;
+}
+
+
+async function readXlsx(buf){
+  const u=new Uint8Array(buf),dv=new DataView(buf),td=new TextDecoder();
+  let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error('zip');
+  const n=dv.getUint16(e+10,true),ent={};let p=dv.getUint32(e+16,true);
+  for(let i=0;i<n;i++){
+    const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    ent[td.decode(u.subarray(p+46,p+46+nl))]={m,cs,lo};p+=46+nl+xl+cl;
+  }
+  const get=async name=>{
+    const f=ent[name];if(!f)return null;
+    const s=f.lo+30+dv.getUint16(f.lo+26,true)+dv.getUint16(f.lo+28,true),data=u.subarray(s,s+f.cs);
+    if(f.m===0)return td.decode(data);
+    if(typeof DecompressionStream==='undefined')throw new Error('old');
+    return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  };
+  const sheetName=Object.keys(ent).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort()[0];
+  const xml=await get(sheetName);if(!xml)throw new Error('sheet');
+  const P=s=>new DOMParser().parseFromString(s,'application/xml');
+  const ssx=await get('xl/sharedStrings.xml');
+  const ss=ssx?[...P(ssx).getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join('')):[];
+  const cells={};
+  for(const c of P(xml).getElementsByTagName('c')){
+    const t=c.getAttribute('t'),v=c.getElementsByTagName('v')[0];
+    let val=null;
+    if(t==='inlineStr')val=[...c.getElementsByTagName('t')].map(x=>x.textContent).join('');
+    else if(t==='s'&&v)val=ss[+v.textContent];
+    else if(t==='str'&&v)val=v.textContent;
+    else if(v)val=+v.textContent;
+    if(val!==null&&val!=='')cells[c.getAttribute('r')]=val;
+  }
+  const toDate=a=>{
+    if(typeof a==='number')return iso(new Date(Date.UTC(1899,11,30)+Math.round(a)*864e5+new Date().getTimezoneOffset()*6e4+12*36e5));
+    const m=String(a||'').match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+    if(m)return (m[3].length===2?'20'+m[3]:m[3])+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+    return today();
+  };
+  const num=x=>typeof x==='number'?x:parse(x);
+  const rows=[];let c=Date.now();
+  for(let r=6;r<6000;r++){
+    const A=cells['A'+r],B=cells['B'+r],C=cells['C'+r],D=cells['D'+r];
+    if(typeof B==='string'&&/стало на рахунку/i.test(B))break;
+    const d=toDate(A),nm=B==null?'':String(B);
+    if(C!=null&&num(C)>0)rows.push({id:newId()+r+'i',c:c++,d,n:nm,t:'in',a:Math.round(num(C)*100)/100});
+    if(D!=null&&num(D)>0)rows.push({id:newId()+r+'o',c:c++,d,n:nm,t:'out',a:Math.round(num(D)*100)/100});
+  }
+  const s=num(cells['D2']);
+  return {start:isFinite(s)?Math.round(s*100)/100:0,rows};
+}
+
+function totals(){let i=0,o=0;for(const r of st.rows)r.t==='in'?i+=r.a:o+=r.a;return{i,o,e:(st.start||0)+i-o}}
+function renderPrev(){
+  const rows=sortAsc(st.rows),R=Math.max(20,rows.length),sumR=6+R,t=totals(),e='<td></td>';
+  const tr=(n,c)=>`<tr><th>${n}</th>${c}</tr>`;
+  let h='<colgroup><col style="width:34px"><col style="width:92px"><col style="width:210px"><col style="width:104px"><col style="width:104px"></colgroup>';
+  h+='<tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr>'+tr(1,e+e+e+e);
+  h+=tr(2,e+`<td colspan="2" class="b bx">Було на рахунку</td><td class="b bx num">${fmt(st.start||0)}</td>`);
+  h+=tr(3,e+e+e+e)+tr(4,e+e+e+e);
+  h+=tr(5,['Дата','Найменування','Доходи','Витрати'].map(x=>`<td class="b bx">${x}</td>`).join(''));
+  for(let i=0;i<R;i++){const r=rows[i];h+=tr(6+i,`<td class="bx">${r?dUA(r.d):''}</td><td class="bx">${r?escH(r.n):''}</td><td class="bx num">${r&&r.t==='in'?fmt(r.a):''}</td><td class="bx num">${r&&r.t==='out'?fmt(r.a):''}</td>`)}
+  h+=tr(sumR,e+`<td colspan="2" class="b bx">Стало на рахунку</td><td class="b bx num">${fmt(t.e)}</td>`)+tr(sumR+1,e+e+e+e);
+  $('sheet').innerHTML=h;
+}
+function render(){
+  const t=totals();
+  $('end').textContent=fmt(t.e);$('sIn').textContent=fmt(t.i);$('sOut').textContent=fmt(t.o);
+  if(document.activeElement!==$('start'))$('start').value=st.start?fmt(st.start):'';
+  const rows=st.rows.slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.c-a.c);
+  $('cnt').textContent=rows.length?'· '+rows.length:'';
+  $('list').innerHTML=rows.length?rows.map(r=>`<li data-id="${r.id}" class="${r.id===editId?'sel':''}"><span class="n">${escH(r.n||'—')}</span><span class="a ${r.t==='in'?'inc':'exp'}">${r.t==='in'?'+':'−'}${fmt(r.a)}</span><span class="d">${dUA(r.d)}</span></li>`).join(''):'<li class="empty">Поки що порожньо. Додай перший запис вище.</li>';
+  $('names').innerHTML=[...new Set(st.rows.map(r=>r.n).filter(Boolean))].slice(-40).map(n=>`<option value="${escH(n)}">`).join('');
+  $('formCard').classList.toggle('editing',!!editId);
+  $('addIn').textContent=editId?'Зберегти як дохід':'+ Доходи';
+  $('addOut').textContent=editId?'Зберегти як витрату':'− Витрати';
+  renderPrev();
+}
+function toast(msg,withUndo){
+  $('tMsg').textContent=msg;$('tUndo').hidden=!withUndo;$('toast').classList.add('on');
+  clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('on'),withUndo?6000:2400);
+}
+function save(){
+  st.ts=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(st));$('sync').textContent='дані на цьому пристрої'}
+  catch(e){$('sync').textContent='не вдалося зберегти!'}
+  render();
+}
+function resetForm(){editId=null;$('name').value='';$('amt').value=''}
+function add(type){
+  const a=parse($('amt').value);
+  if(!(a>0)){$('amt').focus();toast('Вкажи суму');return}
+  const d=$('date').value||today(),n=$('name').value.trim();
+  if(editId){
+    const r=st.rows.find(x=>x.id===editId);
+    if(r){r.d=d;r.n=n;r.a=a;r.t=type}
+    toast('Запис оновлено');
+  }else{
+    st.rows.push({id:newId(),c:Date.now(),d,n,t:type,a});
+    toast((type==='in'?'Дохід ':'Витрату ')+fmt(a)+' додано');
+  }
+  resetForm();save();
+}
+function download(){
+  const d=new Date(),nm='Облік '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+'.xlsx';
+  const blob=new Blob([buildXlsx(st)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+  toast('Файл Excel збережено');
+}
+function setView(v){document.body.classList.toggle('v-table',v==='table');for(const b of document.querySelectorAll('#tabs button'))b.classList.toggle('on',b.dataset.v===v);window.scrollTo(0,0)}
+
+$('addIn').addEventListener('click',()=>add('in'));
+$('addOut').addEventListener('click',()=>add('out'));
+$('amt').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('amt').blur()}});
+$('list').addEventListener('click',e=>{
+  const li=e.target.closest('li[data-id]');if(!li)return;
+  const r=st.rows.find(x=>x.id===li.dataset.id);if(!r)return;
+  editId=r.id;$('name').value=r.n;$('date').value=r.d;$('amt').value=fmt(r.a).replace(/\s/g,'');
+  render();$('formCard').scrollIntoView({behavior:'smooth',block:'start'});
+});
+$('cancel').addEventListener('click',()=>{resetForm();render()});
+$('del').addEventListener('click',()=>{
+  const i=st.rows.findIndex(x=>x.id===editId);if(i<0)return;
+  undo={rows:st.rows.slice(),start:st.start};st.rows.splice(i,1);
+  resetForm();save();toast('Запис видалено',true);
+});
+$('tUndo').addEventListener('click',()=>{if(!undo)return;st.rows=undo.rows;st.start=undo.start;undo=null;save();toast('Повернуто')});
+$('start').addEventListener('change',()=>{const v=parse($('start').value);st.start=isFinite(v)?v:0;save()});
+$('xlsx').addEventListener('click',download);
+$('xlsx2').addEventListener('click',download);
+$('restore').addEventListener('click',()=>$('file').click());
+$('file').addEventListener('change',async()=>{
+  const f=$('file').files[0];$('file').value='';if(!f)return;
+  try{
+    const r=await readXlsx(await f.arrayBuffer());
+    undo={rows:st.rows.slice(),start:st.start};
+    st.start=r.start;st.rows=r.rows;resetForm();save();
+    toast('Відновлено записів: '+r.rows.length,true);
+  }catch(e){toast(e&&e.message==='old'?'Онови браузер, щоб відкрити цей файл':'Не вдалося прочитати файл')}
+});
+$('newPer').addEventListener('click',()=>{$('conf').classList.add('on');$('confNote').hidden=false});
+$('confNo').addEventListener('click',()=>{$('conf').classList.remove('on');$('confNote').hidden=true});
+$('confYes').addEventListener('click',()=>{
+  undo={rows:st.rows.slice(),start:st.start};
+  st.start=Math.round(totals().e*100)/100;st.rows=[];resetForm();
+  $('conf').classList.remove('on');$('confNote').hidden=true;save();toast('Новий період розпочато',true);
+});
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;setView(b.dataset.v);try{history.replaceState(null,'','#'+b.dataset.v)}catch(_){}});
+window.addEventListener('hashchange',()=>setView(location.hash==='#table'?'table':'entries'));
+
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&Array.isArray(s.rows))st=s}catch(e){$('sync').textContent='збереження недоступне'}
+$('date').value=today();
+render();
+if(location.hash==='#table')setView('table');
+}
+</script>
+</body>
+</html>
